@@ -18,3 +18,6 @@ Further instructions for setting up will be on the wiki (soon)
 
 Note to those who use this code:
 When updating simcraft version, update the version of simcraft under the !nerd command in discordbot.py so it is up to date
+
+To run the bot, the command is:
+python3 botrun.py
