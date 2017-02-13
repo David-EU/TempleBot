@@ -246,7 +246,7 @@ async def on_message(message):
             role = get_role(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
             if (isDPS or spec == 'Shadow'):
-                if(spec == 'Shadow'):
+                if(spec == 'Shadow' or True):
                     await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
                     await client.send_message(message.channel, 'Temple Bot takes about 3-5 min to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
                     await client.send_message(message.channel, 'Current spec: %s. Armory info last updated %s' % (spec, armory_date(character, server, region)))                
@@ -276,7 +276,7 @@ async def on_message(message):
             role = get_role(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
             if (isDPS or spec == 'Shadow'):
-                if(spec == 'Shadow'):
+                if(spec == 'Shadow' or True):
                     await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
                     await client.send_message(message.channel, 'Temple Bot takes about 3-5 min to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
                     await client.send_message(message.channel, 'Current spec: %s. Armory info last updated %s' % (spec, armory_date(character, server, region)))                
@@ -306,7 +306,7 @@ async def on_message(message):
             role = get_role(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
             if (isDPS or spec == 'Shadow'):
-                if(spec == 'Shadow'):
+                if(spec == 'Shadow' or True):
                     await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
                     await client.send_message(message.channel, 'Temple Bot takes about 3-5 min to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
                     await client.send_message(message.channel, 'Current spec: %s. Armory info last updated %s' % (spec, armory_date(character, server, region)))                
