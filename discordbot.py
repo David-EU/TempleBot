@@ -81,7 +81,23 @@ def is_dps(character, server, region):
             armory_json['talents'][0]['talents'][i]['spec']['role'] == 'DPS'
             return armory_json['talents'][0]['talents'][i]['spec']['role'] == 'DPS'
         except:
-            print('No spec (dps check1) identifier in tier %s.' % i)
+            print('No role (isDPS check 1 ) identifier in tier %s.' % i)
+    print('Can\'t find first try, going second')
+    for i in range(0,7):
+        try:
+            selected = armory_json['talents'][i]['selected']
+            if(selected):
+                return armory_json['talents'][i]['talents'][i]['spec']['role']  == 'DPS'
+        except:
+            print('No role (isDPS check 2 ) identifier in tier %s.' % i)
+    print('Making 3rd and final attempt to get isDPS')
+    for i in range(0,7):
+        try:
+            selected = armory_json['talents'][i]['selected']
+            if(selected):
+                return armory_json['talents'][i]['spec']['name'] == 'DPS'      
+        except:
+            print('No role (isDPS check 3 ) identifier in tier %s.' % i)
 
 #Returns role            
 def get_role(character, server, region):
@@ -92,50 +108,22 @@ def get_role(character, server, region):
             x = armory_json['talents'][0]['talents'][i]['spec']['role']
             return x
         except:
-            print('No role identifier in tier %s.' % i)
-
-def get_role2(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+            print('No role (getrole 1) identifier in tier %s.' % i)
+    print('Can\'t find role (getRole check1), going second')
     for i in range(0,7):
         try:
             selected = armory_json['talents'][i]['selected']
             if(selected):
                 return armory_json['talents'][i]['talents'][i]['spec']['role']
         except:
-            print('No role2 identifier in tier %s.' % i)
-
-def get_role3(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+            print('No role (getrole 2) identifier in tier %s.' % i)
+    print("3rd and final attempt to get Role")
     for i in range(0,7):
         try:
             x = armory_json['talents'][i]['spec']['role']  
             return x
         except:
-            print('No role3 identifier in tier %s.' % i)
-
-def is_dps2(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
-    for i in range(0,7):
-        try:
-            selected = armory_json['talents'][i]['selected']
-            if(selected):
-                return armory_json['talents'][i]['talents'][i]['spec']['role']  == 'DPS'
-        except:
-            print('No role2 (dps check) identifier in tier %s.' % i)
-
-def is_dps3(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
-    for i in range(0,7):
-        try:
-            selected = armory_json['talents'][i]['selected']
-            if(selected):
-                return armory_json['talents'][i]['spec']['name'] == 'DPS'      
-        except:
-            print('No role3 (dps chec) identifier in tier %s.' % i)
+            print('No role (getrole 3) identifier in tier %s.' % i)
 
 #Returns spec    
 def get_spec(character, server, region):
@@ -146,12 +134,8 @@ def get_spec(character, server, region):
             x = armory_json['talents'][0]['talents'][i]['spec']['name']
             return x
         except:
-            print('No spec1 identifier in tier %s.' % i)
-
-#Returns spec    
-def get_spec2(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+            print('No spec (getspec 1) identifier in tier %s.' % i)
+    print('Can\'t find spec (getSpec check1), going second')
     for i in range(0,3):
         try:
             selected = armory_json['talents'][i]['selected']
@@ -159,12 +143,8 @@ def get_spec2(character, server, region):
                 x = armory_json['talents'][i]['talents'][i]['spec']['name']        
                 return x
         except:
-            print('No spec2 identifier in tier %s.' % i)
-
-#Returns spec    
-def get_spec3(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+            print('No spec (getspec 2) identifier in tier %s.' % i)
+    print('3rd and final attempt to getSpec')
     for i in range(0,3):
         try:
             selected = armory_json['talents'][i]['selected']
@@ -197,24 +177,7 @@ async def on_message(message):
             isDPS = is_dps(character, server, region)
             spec = get_spec(character, server, region)
             role = get_role(character, server, region)
-            print(spec)
-            print(isDPS)
-            print(role)
-            if(spec != "Shadow"):          
-                spec = get_spec2(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                if(spec == 'Shadow'):
-                    print("Fail 2")
-                    isDPS = is_dps2(character, server, region)
-                    role = get_role2(character, server, region)                
-                if(spec is None):
-                    print("Fail 3")
-                    spec = get_spec3(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                    isDPS = is_dps3(character, server, region)
-                    role = get_role3(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
-            print(spec)
-            print(isDPS)
-            print(role)
             if (isDPS or spec == 'Shadow'):
                 if(spec == 'Shadow' or True):
                     await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
@@ -251,24 +214,7 @@ async def on_message(message):
             isDPS = is_dps(character, server, region)
             spec = get_spec(character, server, region)
             role = get_role(character, server, region)
-            print(spec)
-            print(isDPS)
-            print(role)
-            if(spec != "Shadow"):          
-                spec = get_spec2(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                if(spec == 'Shadow'):
-                    print("Fail 2")
-                    isDPS = is_dps2(character, server, region)
-                    role = get_role2(character, server, region)                
-                if(spec is None):
-                    print("Fail 3")
-                    spec = get_spec3(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                    isDPS = is_dps3(character, server, region)
-                    role = get_role3(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
-            print(spec)
-            print(isDPS)
-            print(role)
             if (isDPS or spec == 'Shadow'):
                 if(spec == 'Shadow' or trues):
                     await client.send_message(message.channel, 'Pulling dps stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
@@ -298,24 +244,7 @@ async def on_message(message):
             isDPS = is_dps(character, server, region)
             spec = get_spec(character, server, region)
             role = get_role(character, server, region)
-            print(spec)
-            print(isDPS)
-            print(role)
-            if(spec != "Shadow"):          
-                spec = get_spec2(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                if(spec == 'Shadow'):
-                    print("Fail 2")
-                    isDPS = is_dps2(character, server, region)
-                    role = get_role2(character, server, region)                
-                if(spec is None):
-                    print("Fail 3")
-                    spec = get_spec3(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                    isDPS = is_dps3(character, server, region)
-                    role = get_role3(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
-            print(spec)
-            print(isDPS)
-            print(role)
             if (isDPS or spec == 'Shadow'):
                 if(spec == 'Shadow'):
                     await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
@@ -345,24 +274,7 @@ async def on_message(message):
             isDPS = is_dps(character, server, region)
             spec = get_spec(character, server, region)
             role = get_role(character, server, region)
-            print(spec)
-            print(isDPS)
-            print(role)
-            if(spec != "Shadow"):          
-                spec = get_spec2(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                if(spec == 'Shadow'):
-                    print("Fail 2")
-                    isDPS = is_dps2(character, server, region)
-                    role = get_role2(character, server, region)                
-                if(spec is None):
-                    print("Fail 3")
-                    spec = get_spec3(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                    isDPS = is_dps3(character, server, region)
-                    role = get_role3(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
-            print(spec)
-            print(isDPS)
-            print(role)
             if (isDPS or spec == 'Shadow'):
                 if(spec == 'Shadow'):
                     await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
@@ -392,24 +304,7 @@ async def on_message(message):
             isDPS = is_dps(character, server, region)
             spec = get_spec(character, server, region)
             role = get_role(character, server, region)
-            print(spec)
-            print(isDPS)
-            print(role)
-            if(spec != "Shadow"):          
-                spec = get_spec2(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                if(spec == 'Shadow'):
-                    print("Fail 2")
-                    isDPS = is_dps2(character, server, region)
-                    role = get_role2(character, server, region)                
-                if(spec is None):
-                    print("Fail 3")
-                    spec = get_spec3(character, server, region) #Look up the other way it may not be shadow due to API weirdness
-                    isDPS = is_dps3(character, server, region)
-                    role = get_role3(character, server, region)
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
-            print(spec)
-            print(isDPS)
-            print(role)
             if (isDPS or spec == 'Shadow'):
                 if(spec == 'Shadow'):
                     await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
