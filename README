@@ -1,8 +1,17 @@
-# TempleBot
-TempleBot is a discord bot to assist with simming world of warcraft,
+TempleBot is a discord bot to assist with simming World of Warcraft.
 
-Templebot will run simcraft for a MacOS environment and output a pawn string or DPS sim results. 
+Templebot will run Simcraft for a MacOS environment and output a pawn string or DPS sim results. Currently US and EU regions are supported.
 
-TempleBot is based off of Silkybot 0.9 (which is configured for Windows), a link to Silkybot can be see in the fork.
+TempleBot is based off of Silkybot 0.9 (which is configured for Windows), the link to the repo can be found in the fork, or here: https://github.com/troyredfearn/silkybot.
 
-TembleBot requires BeautifulSoup and Discord.py
+TembleBot requires BeautifulSoup, Discord.py, Simcraft, a Blizzard API key, and a Discord App turned bot
+
+BeautifulSoup can be found: https://www.crummy.com/software/BeautifulSoup/
+Discord.py's github is: https://github.com/Rapptz/discord.py
+Simcraft can be downloaded at: http://www.simulationcraft.org/download.html
+Simcraft's github can be found at: https://github.com/simulationcraft/simc
+Build instructions for simcraft can be found at: https://github.com/simulationcraft/simc/wiki/HowToBuild
+To register for a Blizzard API key, go here: https://dev.battle.net/
+To register a Discord app, go here: https://dev.battle.net/
+
+Further instructions for setting up will be on the wiki (soon)
