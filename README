@@ -1,6 +1,8 @@
-Simbot v0.9
-Currently only supports Windows
-Support for other OS coming soon
-Run using botrun.py
-Requires BeautifulSoup and discord.py
-Written by Troy Redfearn
+# TempleBot
+TempleBot is a discord bot to assist with simming world of warcraft,
+
+Templebot will run simcraft for a MacOS environment and output a pawn string or DPS sim results. 
+
+TempleBot is based off of Silkybot 0.9 (which is configured for Windows), a link to Silkybot can be see in the fork.
+
+TembleBot requires BeautifulSoup and Discord.py

@@ -16,12 +16,18 @@ with open('config.json') as config_data:
 character = str(sys.argv[1])
 server = str(sys.argv[2])
 channel = str(sys.argv[3])
-author = sys.argv[4]
+author = str(sys.argv[4])
+region = str(sys.argv[5])
 
-def pawnstrip(character, server):
-    with open('%s%s-%s.html' % (simcraft_path, character, server), encoding='utf8') as infile:
-        soup = BeautifulSoup(infile, "html.parser")
-        return soup.find(text=re.compile(' Pawn: v1: '))
+def pawnstrip(character, server, region):
+    try:
+        with open('%s%s-%s-%s.html' % (simcraft_path, character, server, region), encoding='utf8') as infile:
+            soup = BeautifulSoup(infile, "html.parser")
+            return soup.find(text=re.compile(' Pawn: v1: '))
+    except:
+        print('Bad sim, cannot find %s%s-%s-%s.html' % (simcraft_path, character, server, region))
+        return 'Error simming character, simcraft crashed during sim. Please try again'
+    
     
 def mod_date(filename):
     t = os.path.getmtime(filename)
@@ -31,9 +37,11 @@ def mod_date(filename):
 async def on_ready():
         for x in config_json['servers']:
             client.accept_invite(x)
-        await client.send_message(client.get_channel(channel), '%s: Stat weight simulation on %s completed.' % (author, character))
-        await client.send_message(client.get_channel(channel), '%s: %s' % (author, pawnstrip(character, server)))
+        await client.send_message(client.get_channel(channel), '%s: Stat weight simulation on %s completed. This is for a 1 target fight' % (author, character))
+        await client.send_message(client.get_channel(channel), '%s: Remember, this is for %s\'s current talents! Other talent combos will likely be a different pawn string.' % (author, character))
+        await client.send_message(client.get_channel(channel), '%s: %s' % (author, pawnstrip(character, server, region)))
         await client.logout()
-
-subprocess.call('%ssimc.exe armory=us,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 html=%s-%s.html output=%s.txt' % (simcraft_path, server, character, character, server, character), cwd=simcraft_path)
+print('Starting sim:')
+print('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=intellect,crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 html=%s-%s-%s.html output=%s-%s.txt' % (simcraft_path, region, server, character, character, server, region, character, region))
+subprocess.call('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=intellect,crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 html=%s-%s-%s.html output=%s-%s.txt' % (simcraft_path, region, server, character, character, server, region, character, region), cwd=simcraft_path, shell=True)
 client.run(token)

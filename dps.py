@@ -17,9 +17,10 @@ character = str(sys.argv[1])
 server = str(sys.argv[2])
 channel = str(sys.argv[3])
 author = sys.argv[4]
+region = str(sys.argv[5])
 
-def damagestrip(character, server):
-    with open('%s%s-%s-dps.html' % (simcraft_path, character, server), encoding='utf8') as infile:
+def damagestrip(character, server, region):
+    with open('%s%s-%s-%s-dps.html' % (simcraft_path, character, server, region), encoding='utf8') as infile:
         soup = BeautifulSoup(infile, "html.parser")
         return soup.find(text=re.compile(' dps'))
     
@@ -32,8 +33,9 @@ async def on_ready():
         for x in config_json['servers']:
             client.accept_invite(x)
         await client.send_message(client.get_channel(channel), '%s: DPS simulation on %s completed.' % (author, character))
-        await client.send_message(client.get_channel(channel), '%s: %s' % (author, damagestrip(character, server)))
+        await client.send_message(client.get_channel(channel), '%s: %s' % (author, damagestrip(character, server, region)))
         await client.logout()
 
-subprocess.call('%ssimc.exe armory=us,%s,%s calculate_scale_factors=0 iterations=10000 html=%s-%s-dps.html output=%s-dps.txt fight_style=LightMovement' % (simcraft_path, server, character, character, server, character), cwd=simcraft_path)
+print('%s./simc armory=%s,%s,%s calculate_scale_factors=0 iterations=10000 html=%s-%s-%s-dps.html output=%s-%s.txt fight_style=LightMovement' % (simcraft_path, region, server, character, character, server, region, character, region))
+subprocess.call('%s./simc armory=%s,%s,%s calculate_scale_factors=0 iterations=10000 html=%s-%s-%s-dps.html output=%s-%s.txt fight_style=LightMovement' % (simcraft_path, region, server, character, character, server, region, character, region), cwd=simcraft_path, shell=True)
 client.run(token)
