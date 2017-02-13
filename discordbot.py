@@ -106,7 +106,8 @@ def get_role(character, server, region):
     for i in range(0,7):
         try:
             x = armory_json['talents'][0]['talents'][i]['spec']['role']
-            return x
+            if(x):
+                return x
         except:
             print('No role (getrole 1) identifier in tier %s.' % i)
     print('Can\'t find role (getRole check1), going second')
@@ -132,7 +133,8 @@ def get_spec(character, server, region):
     for i in range(0,7):
         try:
             x = armory_json['talents'][0]['talents'][i]['spec']['name']
-            return x
+            if(x):
+                return x
         except:
             print('No spec (getspec 1) identifier in tier %s.' % i)
     print('Can\'t find spec (getSpec check1), going second')
@@ -166,36 +168,6 @@ async def on_ready():
 @client.event
 async def on_message(message):
     author = message.author
-    if message.content.startswith('!sim '):
-        character = charstrip(message.content, '!sim ').strip()
-        server = serverstrip(message.content).replace("'", "").strip()
-        region = regionfind(message.content).strip()
-        escapeAuthor = author.mention.replace(">", "\>").replace("<", "\<")        
-        print('Looking at %s - %s - %s' % (character, server, region))
-        if char_exists(character, server, region):
-            print("Toon exists, moving on")
-            isDPS = is_dps(character, server, region)
-            spec = get_spec(character, server, region)
-            role = get_role(character, server, region)
-            print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
-            if (isDPS or spec == 'Shadow'):
-                if(spec == 'Shadow' or True):
-                    await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
-                    await client.send_message(message.channel, 'Temple Bot takes about 3-5 min to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
-                    await client.send_message(message.channel, 'Current spec: %s. Armory info last updated %s' % (spec, armory_date(character, server, region)))                
-                    await client.send_message(message.channel, '%s: Starting sim. This will take several minutes.' % author.mention)                
-                    subprocess.Popen('python3 sim.py %s %s %s %s %s' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
-                else:
-                    await client.send_message(message.channel, '%s: Sorry, I am a mean temple bot. I only have eyes for Shadow Priests.' % author.mention)
-            else:
-                if (role == 'TANK'):
-                    await client.send_message(message.channel, '%s: Sorry, sims for pawn do not work well for Tanks. This is a limitation of SimulationCraft. Have you thought about being Shadow? I like Shadow' % author.mention)
-                elif (role == 'HEALING'):
-                    await client.send_message(message.channel, '%s: Sorry, sims do not work for healers. This is a limitation of SimulationCraft. Have you thought about being Shadow?' % author.mention)
-                else:
-                    await client.send_message(message.channel, '%s: Error getting info for character %s-%s-%s. Role not found. Make sure your format is \'!sim charactername-servername-region\'.' % (author.mention, character, server, region))
-        else:
-            await client.send_message(message.channel, '%s: Character %s-%s-%s not found. Make sure your format is \'!sim charactername-servername-region\'.' % (author.mention, character, server, region))    
     if message.content.startswith('!help'):
         await client.send_message(message.channel, 'To simulate: \'!sim charactername-servername-region\'. Only US/EU supported. Sims take a few minutes depending on load. You will get a message when it is completed.')    
         await client.send_message(message.channel, 'Character data is pulled from the Armory, so it may not always be up to date. Please leave in spaces for realm name')
@@ -203,40 +175,12 @@ async def on_message(message):
         await client.send_message(message.channel, 'I do very basic 10k sims for a Patchwerk fight, using the talents and gear you last logged out in. Custom sims are not available. If a completely custom sim is of interest to you, go sim yourself!')
         await client.send_message(message.channel, 'Temple Bot runs SimulationCraft 715-01 for World of Warcraft 7.1.5 Live (wow build 23360, git build c8f3bd3). Temple Bot runs a modified Simbot 0.9.')
         await client.send_message(message.channel, 'Temple Bot runs on a 3 year old computer. Temple Bot is slow. Temple Bot thought it was in retirement. Temple Bot was wrong.')
-    if message.content.startswith('!dps '):
-        character = charstrip(message.content, '!dps ').strip()
-        server = serverstrip(message.content).replace("'", "").strip()
-        region = regionfind(message.content).strip()
-        escapeAuthor = author.mention.replace(">", "\>").replace("<", "\<")        
-        print('Looking at %s - %s - %s' % (character, server, region))
-        if char_exists(character, server, region):
-            print("Toon exists, moving on")
-            isDPS = is_dps(character, server, region)
-            spec = get_spec(character, server, region)
-            role = get_role(character, server, region)
-            print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
-            if (isDPS or spec == 'Shadow'):
-                if(spec == 'Shadow' or trues):
-                    await client.send_message(message.channel, 'Pulling dps stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))
-                    await client.send_message(message.channel, 'Temple Bot takes about 3-5 min to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
-                    await client.send_message(message.channel, 'Current spec: %s. Armory info last updated %s' % (spec, armory_date(character, server, region)))                
-                    await client.send_message(message.channel, '%s: Starting sim. This will take several minutes.' % author.mention)                
-                    subprocess.Popen('python3 dps.py %s %s %s %s %s' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
-                else:
-                    await client.send_message(message.channel, '%s: Sorry, I am a mean temple bot. I only have eyes for Shadow Priests.' % author.mention)
-            else:
-                if (role == 'TANK'):
-                    await client.send_message(message.channel, '%s: Sorry, sims for pawn do not work well for Tanks. This is a limitation of SimulationCraft. Have you thought about being Shadow? I like Shadow' % author.mention)
-                elif (role == 'HEALING'):
-                    await client.send_message(message.channel, '%s: Sorry, sims do not work for healers. This is a limitation of SimulationCraft. Have you thought about being Shadow?' % author.mention)
-                else:
-                    await client.send_message(message.channel, '%s: Error getting info for character %s-%s-%s. Role not found. Make sure your format is \'!sim charactername-servername-region\'.' % (author.mention, character, server, region))
-        else:
-            await client.send_message(message.channel, '%s: Character %s-%s-%s not found. Make sure your format is \'!sim charactername-servername-region\'.' % (author.mention, character, server, region))    
-    if message.content.startswith('!2sim ') or message.content.startswith('!3sim ') or message.content.startswith('!sim3 '):
+    if message.content.startswith('!2sim ') or message.content.startswith('!3sim ') or message.content.startswith('!sim3 ') or message.content.startswith('!sim ') or message.content.startswith('!dps '):
         run2 = False
         run3 = False
         runAll3 = False
+        runStandalone = False
+        runDPS = False
 
         if(message.content.startswith('!2sim ')):
             character = charstrip(message.content, '!2sim ').strip()
@@ -244,9 +188,16 @@ async def on_message(message):
         elif(message.content.startswith('!3sim ')):
             character = charstrip(message.content, '!3sim ').strip()
             run3 = True
-        else:
+        elif(message.content.startswith('!sim3 ')):
             character = charstrip(message.content, '!sim3 ').strip()
             runAll3 = True
+        elif(message.content.startswith('!sim ')):
+            character = charstrip(message.content, '!sim ').strip()
+            runStandalone = True
+        elif(message.content.startswith('!dps ')):
+            character = charstrip(message.content, '!dps ').strip()
+            runDPS = True
+
         server = serverstrip(message.content).replace("'", "").strip()
         region = regionfind(message.content).strip()
         escapeAuthor = author.mention.replace(">", "\>").replace("<", "\<")        
@@ -261,16 +212,32 @@ async def on_message(message):
             if (isDPS or spec == 'Shadow'):
                 if(spec == 'Shadow' or True):
                     await client.send_message(message.channel, 'Temple Bot takes about 3-5 min to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
-                    await client.send_message(message.channel, 'Current spec: %s. Armory info last updated %s' % (spec, armory_date(character, server, region)))                                      
+                    await client.send_message(message.channel, 'Current spec for %s-%s-%s: %s. Armory info last updated %s' % (character, server, region, spec, armory_date(character, server, region)))                                      
                     if(run2):
-                        await client.send_message(message.channel, '%s: Starting 1 sim for 2 targets. This will take several minutes.' % author.mention)            
-                        subprocess.Popen('python3 sim2.py %s %s %s %s %s yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                        print('Starting a 2 target standalone')
+                        await client.send_message(message.channel, 'Starting 1 sim for 2 targets for %s - %s - %s. This will take several minutes.' % (character, server, region))
+                        subprocess.Popen('python3 sim.py %s %s %s %s %s 2 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
                     elif(run3):
-                        await client.send_message(message.channel, '%s: Starting 1 sim for 3 targets. This will take several minutes.' % author.mention) 
-                        subprocess.Popen('python3 sim3.py %s %s %s %s %s yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                        print('Starting a 3 target standalone')
+                        await client.send_message(message.channel, 'Starting 1 sim for 3 targets for %s - %s - %s. This will take several minutes.' % (character, server, region))
+                        subprocess.Popen('python3 sim.py %s %s %s %s %s 3 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                    elif(runAll3):
+                        print('Starting the 1,2,3 sim run')
+                        await client.send_message(message.channel, 'Starting 3 sims for 1, 2 and 3 targets for %s - %s - %s. These will run one after the other and will take several minutes.' % (character, server, region))              
+                        subprocess.Popen('python3 sim.py %s %s %s %s %s 1 no' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                    elif(runStandalone):
+                        print('Starting a 1 target standalone')
+                        await client.send_message(message.channel, 'Starting sim. This will take several minutes for %s - %s - %s.' % (character, server, region))
+                        subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                    elif(runDPS):
+                        print('Starting DPS only')
+                        await client.send_message(message.channel, 'Starting sim. This will take several minutes for %s - %s - %s.' % (character, server, region))          
+                        subprocess.Popen('python3 dps.py %s %s %s %s %s' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
                     else:
-                        await client.send_message(message.channel, '%s: Starting 3 sims for 1, 2 and 3 targets. These will run one after the other and will take several minutes.' % author.mention)               
-                        subprocess.Popen('python3 sim1.py %s %s %s %s %s' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                        #Failsafe is single sim
+                        print('I shouldn\'t be here, but gonna run a single target sim')
+                        await client.send_message(message.channel, 'Starting sim. This will take several minutes for %s - %s - %s.' % (character, server, region))
+                        subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, message.channel. id, escapeAuthor, region), shell=True)
                 else:
                     await client.send_message(message.channel, '%s: Sorry, I am a mean temple bot. I only have eyes for Shadow Priests.' % author.mention)
             else:

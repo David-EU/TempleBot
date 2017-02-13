@@ -15,3 +15,6 @@ To register for a Blizzard API key, go here: https://dev.battle.net/
 To register a Discord app, go here: https://dev.battle.net/
 
 Further instructions for setting up will be on the wiki (soon)
+
+Note to those who use this code:
+When updating simcraft version, update the version of simcraft under the !nerd command in discordbot.py so it is up to date
