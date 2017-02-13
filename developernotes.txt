@@ -16,6 +16,9 @@ you will know because the pawn string often has incredibly high values, such as 
 Performance.
 This is mostly related to simcraft. Depending on how good the CPU of your system is, the sim itself will take a very very long time, or be fairly fast. If you read the Simcraft documentation, you will see this has everything to do with the CPU (and possibly RAM) of a system and NOT the GPU. Also, because simcraft is a CPU hog, I do NOT recommend running this discord bot on the same system you plan to game with. Doing this will likely cause unexpected lag while gaming, and knowing most people's luck, it'll be during that really good pull you had in the middle of progression.
 
+The config.json file
+Git doesn't work the way I want it to, I need people to know of this files existance, but not how it's filled in. Just try to not commit it when you use it ;). I may change this in the future to create a script that sets up the file, but until then, just be careful. dun dun duuuuuuun.
+
 Returning the TempleBot code to Window's compatability.
 There were a few things that needed to happen to allow the code to run for a macOS (and possibly other Unix) environment.
 1) Changing all python to python3. This might have been just my system though. In order to run pythin correctly, I needed to run the commands as pyhon3 and not python
