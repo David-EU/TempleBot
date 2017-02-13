@@ -45,7 +45,7 @@ def regionfind(message):
     region = tail1.lower();
     if (tail1.lower() == "us" or tail1.lower() =="na"):
         region = "us";
-    if (tail1.lower() == "eu"):
+    if (tail1.lower() == "eu" or tail1.lower() =="ru"):
         region = "eu";
     return region;
 
