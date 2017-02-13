@@ -1,0 +1,25 @@
+There are a few things to note about how some things work.
+
+First off is the blizzard API.
+I've found three variations in the layout of JSON returns from the website, so I've tried to accomodate for all of them.
+Unfortunatly, due to the nature of not having control over how people log in and out, it can be hard to account for all the variations, mainly making sure they log out as Shadow.
+Plus, it doesn't help that I didn't record the people with these odd JSON as I came across them, so it's hard to make sure the consolidated version works.
+I will attempt to be better at that in the future.
+
+Second is Simcraft itself.
+It's always worth noting that Simcraft is only good as the class module developers make it. Some classes are better supported, and some classes are better written.
+The difference in the latter is more obvious if one compiles the simcraft code yourself, as you will see build warnings.
+I have found the shadow module of simcraft to be incredibly unstable in the macOS distribution, if often hard crashes and stops the sim (which is why there is code catching this behavior in the code).
+My, possibly very bad, solution is to go into the simcraft shadow code myself and comment out the asserts in the code (I think there are 4 or 5). When it hits this and is thrown into a bad state,
+you will know because the pawn string often has incredibly high values, such as putting all weights in the 100s, or 40s, or 60s. This occurs more often with S2M sims (which are also very slow). Unfortunatly, I haven't come up with an idea that will catch these bad pawn strings, and quietly rerun the sim. Perhaps stable builds are better?
+
+Performance.
+This is mostly related to simcraft. Depending on how good the CPU of your system is, the sim itself will take a very very long time, or be fairly fast. If you read the Simcraft documentation, you will see this has everything to do with the CPU (and possibly RAM) of a system and NOT the GPU. Also, because simcraft is a CPU hog, I do NOT recommend running this discord bot on the same system you plan to game with. Doing this will likely cause unexpected lag while gaming, and knowing most people's luck, it'll be during that really good pull you had in the middle of progression.
+
+Returning the TempleBot code to Window's compatability.
+There were a few things that needed to happen to allow the code to run for a macOS (and possibly other Unix) environment.
+1) Changing all python to python3. This might have been just my system though. In order to run pythin correctly, I needed to run the commands as pyhon3 and not python
+2) The addition of , shell=True to all calls made. These can be removed for a return to Windows
+3) Changing the subprocess call from simc.exe to ./simc nothing to special here.
+4) The removal of the /C in the subprocess.pOpen when calling sim.py or dps.py (following the arguments). This is very specificlly windows open, and what it does it closes the window when it's done.
+5) And finally: escaping author strings (as seen in sim.py and discordbot.py) These escapes are needed to call the processes again, mostly because of included < and > symbols which do not pass well when working with macOS. the stringreplace most likely needs to be removed to work again in Windows, otherwise the mentions will likely not work correctly.
