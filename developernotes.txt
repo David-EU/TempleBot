@@ -34,9 +34,9 @@ file, but until then, just be careful. dun dun duuuuuuun.
 
 Returning the TempleBot code to Window's compatability.
 There were a few things that needed to happen to allow the code to run for a macOS (and possibly other Unix) environment.
-1) Changing all python to python3. This might have been just my system though. In order to run pythin correctly, 
+1) Changing all python to python3. This might have been just my system though. In order to run python correctly, 
 	I needed to run the commands as pyhon3 and not python
-2) The addition of , shell=True to all calls made. These can be removed for a return to Windows
+2) The addition of ", shell=True" to all calls made. These can be removed for a return to Windows
 3) Changing the subprocess call from simc.exe to ./simc nothing to special here.
 4) The removal of the /C in the subprocess.pOpen when calling sim.py or dps.py (following the arguments). This is very 
 	specificlly windows open, and what it does it closes the window when it's done.
