@@ -39,7 +39,11 @@ def pawnstrip(character, server, region, numberTargets, standAlone):
         print('Bad sim, cannot find %s%s-%s-%s-%s.html' % (simcraft_path, character, server, region, numberTargets))
         return 'Error simming character, simcraft crashed during sim. Please try again'
     
-    
+def damagestrip(character, server, region, numberTargets):
+    with open('%s%s-%s-%s-%s.html' % (simcraft_path, character, server, region, numberTargets), encoding='utf8') as infile:
+        soup = BeautifulSoup(infile, "html.parser")
+        return soup.find(text=re.compile(' dps'))
+
 def mod_date(filename):
     t = os.path.getmtime(filename)
     return datetime.datetime.fromtimestamp(t)
@@ -51,6 +55,7 @@ async def on_ready():
         await client.send_message(client.get_channel(channel), '%s: Stat weight simulation on %s completed. This is for a %a target fight' % (author, character, numberTargets))
         await client.send_message(client.get_channel(channel), '%s: Remember, this is for %s\'s current talents! Other talent combos will likely be a different pawn string.' % (author, character))
         await client.send_message(client.get_channel(channel), '%s: %s' % (author, pawnstrip(character, server, region, numberTargets, standAlone)))
+        #await client.send_message(client.get_channel(channel), '%s: %s' % (author, damagestrip(character, server, region, numberTargets)))
         if(numberTargets == '1' and standAlone == "no"):
             await client.send_message(client.get_channel(channel), 'Starting 2 target sim')                    
             subprocess.Popen('python3 sim.py %s %s %s %s %s 2 no' % (character, server, channel, escapeAuthor, region), shell=True)
