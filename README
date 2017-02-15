@@ -21,3 +21,5 @@ When updating simcraft version, update the version of simcraft under the !nerd c
 
 To run the bot, the command is:
 python3 botrun.py
+
+To enable DPS estimate along with the pawn string, remove the # on line 58 in sim.py
