@@ -7,6 +7,7 @@ import re
 import os
 import datetime
 import time
+import asyncio
 
 client = discord.Client()
 with open('config.json') as config_data:
@@ -70,15 +71,56 @@ def generateurl():
     except:
         return 'Unable to move file to www.ketbots.com'
 
-def mod_date(filename):
-    try:
-        t = os.path.getmtime(filename)
-        return datetime.datetime.fromtimestamp(t)
-    except:
-        return 'Error'
+async def run_sim():
+    print('Starting sim:')
+    print('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, time))
+
+    simout = open(os.path.join(simcraft_path, time+ 'simout'), "w")
+    simerr = open(os.path.join(simcraft_path, time+'simerr'), "w")
+    sim = subprocess.Popen('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, time), cwd=simcraft_path, universal_newlines=True, shell=True, stdout=simout, stderr=simerr)
+    progress_message = await client.send_message(client.get_channel(channel), 'Sim Starting')
+    await asyncio.sleep(1)
+    loop = True
+    while loop:
+        await asyncio.sleep(1)
+        with open(os.path.join(simcraft_path, time+ 'simout'), errors='replace') as s:
+            progressCheck = s.readlines()
+        with open(os.path.join(simcraft_path, time+'simerr'), errors='replace') as e:
+            errors = e.readlines()
+        if len(errors) > 0:
+            loop = False
+            sim.terminate()
+            await client.edit_message(progress_message, 'Sim failed :(\n' + errors)
+        else:
+            if len(progressCheck) > 1:
+                if 'report took' in progressCheck[-2]:
+                    loop = False
+                    print("sim done")
+                    await client.delete_message(progress_message)
+                    sim.terminate()
+                else:
+                    if 'Generating' in progressCheck[-1]:
+                        done = '█' * (20 - progressCheck[-1].count('.'))
+                        todo = '░' * (progressCheck[-1].count('.'))
+                        progressBar = done + todo
+                        percentage = 100 - progressCheck[-1].count('.') * 5 
+                        status =  progressCheck[-1].split()[1]
+                        if 'sec' in progressCheck[-1].split()[-1] or 'min' in progressCheck[-1].split()[-1]:
+                            if 'min' in progressCheck[-1].split()[2]:
+                                timer = ' (' + progressCheck[-1].split()[-2] + ' ' + progressCheck[-1].split()[-1] + ' left)'
+                            else:
+                                timer = ' (' + progressCheck[-1].split()[-1] + ' left)'
+                        else:
+                            timer = ''
+                        try:
+                            progress_message = await client.edit_message(progress_message, status + ' ' + progressBar + ' ' + str(percentage) + '%' + timer)
+                            print(status + ' ' + progressBar + ' ' + str(percentage) + '%' + timer) 
+                        except:
+                            pass
 
 @client.event
 async def on_ready():
+        await run_sim()
         for x in config_json['servers']:
             client.accept_invite(x)
         await client.send_message(client.get_channel(channel), 'Stat weight simulation on %s completed. This is for a %a target fight' % (character, numberTargets))
@@ -95,7 +137,6 @@ async def on_ready():
         elif(numberTargets == '3' and standAlone == "no"):
             await client.send_message(client.get_channel(channel), 'Does a 2 or 3 target look majorly off? Rerun a 2 target using !2sim character-server-region. Rerun a 3 with !3sim character-server-region')          
         await client.logout()
-print('Starting sim:')
-print('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, time))
-subprocess.call('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, time), cwd=simcraft_path, shell=True)
+
 client.run(token)
+
