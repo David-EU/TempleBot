@@ -16,11 +16,18 @@ with open('config.json') as config_data:
     simcraft_path = config_json['path']
     token = config_json['discord_token']
 
+
+#simc verion check
+def simc_version():
+    versionNum = subprocess.run('%s/simc' %(simcraft_path), shell=True, stdout=subprocess.PIPE)
+    return versionNum.stdout.decode('utf-8').strip()   
+
 #Returns true if character exists on armory, false otherwise
 def char_exists(character,server, region):    
     try:
         print('https://%s.api.battle.net/wow/character/%s/%s?fields=talents,items,professions&?locale=en_US&apikey=%s' % (region, server, character, api_key))
         r = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents,items,professions&?locale=en_US&apikey=%s' % (region, server, character, api_key))
+        print("asfsdaa")
         print(r.status_code);
         if(r.status_code == 500):
             print('500 error');
@@ -169,7 +176,6 @@ def get_spec(character, server, region):
         except:
             print('No spec3 identifier in tier %s.' % i)
 
-
 @client.event
 async def on_ready():
 #On ready, joins all servers in JSON
@@ -186,8 +192,9 @@ async def on_message(message):
         await client.send_message(message.channel, 'To simulate: \'!sim charactername-servername-region\'. Only US/EU supported. Sims take a few minutes depending on load. You will get a message when it is completed.')    
         await client.send_message(message.channel, 'Character data is pulled from the Armory, so it may not always be up to date. Please leave in spaces for realm name')
     if message.content.startswith('!nerd') or message.content.startswith('!about'):
+        version = simc_version()
         await client.send_message(message.channel, 'I do very basic 10k sims for a Patchwerk fight, using the talents and gear you last logged out in. Custom sims are not available. If a completely custom sim is of interest to you, go sim yourself!')
-        await client.send_message(message.channel, 'I run SimulationCraft 725-02 for World of Warcraft 7.3.0 Live (wow build 24920, git build 0fe5ee8). I run off of a modified Simbot 0.9.')
+        await client.send_message(message.channel, 'I run %s. The Bot itself was forked from Simbot 0.9' % (version))
         await client.send_message(message.channel, 'I run on a 4 core cloud VPS hosted on linode. Even with 4 cores, I am sometimes slow- because simcraft is a CPU hog. Interested in your own VPS? Feel free to use our referral code: https://www.linode.com/?r=9d48802831815c3edba8abb1431f3ade33ef357d (we get a $20 credit if you stay for 90 days)')
     if message.content.startswith('!2sim ') or message.content.startswith('!3sim ') or message.content.startswith('!sim3 ') or message.content.startswith('!sim ') or message.content.startswith('!dps '):
         run2 = False
