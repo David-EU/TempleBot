@@ -22,29 +22,6 @@ def simc_version():
     versionNum = subprocess.run('%s/simc' %(simcraft_path), shell=True, stdout=subprocess.PIPE)
     return versionNum.stdout.decode('utf-8').strip()   
 
-#Returns true if character exists on armory, false otherwise
-def char_exists(character,server, region):    
-    try:
-        print('https://%s.api.battle.net/wow/character/%s/%s?fields=talents,items,professions&?locale=en_US&apikey=%s' % (region, server, character, api_key))
-        r = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents,items,professions&?locale=en_US&apikey=%s' % (region, server, character, api_key))
-        print("asfsdaa")
-        print(r.status_code);
-        if(r.status_code == 500):
-            print('500 error');
-            return False
-        else:
-            return True
-    except:
-        return False
-
-#returns code
-def char_exists_code(character,server, region):
-    try:
-        r = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents,items,professions&?locale=en_US&apikey=%s' % (region, server, character, api_key))
-        return r.status_code
-    except:
-        return 400;
-
 #Removes strip from message, and returns Charactername in a message formatted 'charactername-servername'
 def charstrip(message, strip):
     character = message.replace("%s" % strip, "")
@@ -79,23 +56,37 @@ def pawnstrip(character, server):
         soup = BeautifulSoup(infile, "html.parser")
         return soup.find(text=re.compile(' Pawn: v1: '))
 
-#Returns modified date of a file in local time        
-def mod_date(filename):
-    t = os.path.getmtime(filename)
-    return datetime.datetime.fromtimestamp(t)
+#Get all the character stats at once
+def get_char_info(character, server, region):
+    charExists = True
+    isDPS = False
+    spec = 'Pancake'
+    role = 'Waffle'
+    statusCode = 200;
+    update_time = 'idk';
+    try:
+        r = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
+        statusCode = r.status_code
+        if(statusCode == 500):
+            charExists = False
+            return [charExists, statusCode]
+        else:
+            charExists = True
+            update_time = armory_date(r.json())
+            isDPS = is_dps(r.json())
+            role = get_role(r.json())
+            spec = get_spec(r.json())
+            return [charExists, statusCode, isDPS, spec, role, update_time]
+    except:
+        return [False, 400]
 
 #Returns armory update time
-def armory_date(character, server, region):
-    print('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+def armory_date(armory_json):
     update_time = armory_json['lastModified']
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(update_time / 1000))
 
 #Returns true if DPS role, false if any other role
-def is_dps(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+def is_dps(armory_json):
     for i in range(0,7):
         try:
             armory_json['talents'][0]['talents'][i]['spec']['role'] == 'DPS'
@@ -120,9 +111,7 @@ def is_dps(character, server, region):
             print('No role (isDPS check 3 ) identifier in tier %s.' % i)
 
 #Returns role            
-def get_role(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+def get_role(armory_json):
     for i in range(0,7):
         try:
             x = armory_json['talents'][0]['talents'][i]['spec']['role']
@@ -147,9 +136,7 @@ def get_role(character, server, region):
             print('No role (getrole 3) identifier in tier %s.' % i)
 
 #Returns spec    
-def get_spec(character, server, region):
-    armory_json = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents&locale=en_US&apikey=%s' % (region, server, character, api_key))
-    armory_json = armory_json.json()
+def get_spec(armory_json):
     for i in range(0,7):
         try:
             x = armory_json['talents'][0]['talents'][i]['spec']['name']
@@ -222,44 +209,45 @@ async def on_message(message):
         region = regionfind(message.content).strip()
         escapeAuthor = author.mention.replace(">", "\>").replace("<", "\<")        
         print('Looking at %s - %s - %s' % (character, server, region))
-        await client.send_message(message.channel, 'Pulling simming stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))                    
-        if char_exists(character, server, region):
+        await client.send_message(message.channel, 'Pulling stats for %s - %s - %s. Be aware concurrent simulations will slow me down. Be gentle... I\'m delicate :^)' % (character, server, region))                    
+        #get char info returns as: CharExists, Status Code, isDPS, Spec, Role, update time
+        charInfo = get_char_info(character, server, region)
+        toonExists = charInfo[0]
+        if toonExists:
             print("Toon exists, moving on")
-            isDPS = is_dps(character, server, region)
-            spec = get_spec(character, server, region)
-            role = get_role(character, server, region)
+            isDPS = charInfo[2]
+            spec = charInfo[3]
+            role = charInfo[4]
+            armory_date = charInfo[5]
             print('Looking at %s - %s - %s who exists and is a %s' % (character, server, region, spec ))
             if (isDPS or spec == 'Shadow'):
-                if(spec == 'Shadow' or True):
-                    await client.send_message(message.channel, 'I take about 2 minutes to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
-                    await client.send_message(message.channel, 'Current spec for %s-%s-%s: %s. Armory info last updated %s' % (character, server, region, spec, armory_date(character, server, region)))                                      
-                    if(run2):
-                        print('Starting a 2 target standalone')
-                        await client.send_message(message.channel, 'Starting 1 sim for 2 targets for %s - %s - %s. This will take about a minute.' % (character, server, region))
-                        subprocess.Popen('python3 sim.py %s %s %s %s %s 2 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
-                    elif(run3):
-                        print('Starting a 3 target standalone')
-                        await client.send_message(message.channel, 'Starting 1 sim for 3 targets for %s - %s - %s. This will take about a minute.' % (character, server, region))
-                        subprocess.Popen('python3 sim.py %s %s %s %s %s 3 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
-                    elif(runAll3):
-                        print('Starting the 1,2,3 sim run')
-                        await client.send_message(message.channel, 'Starting 3 sims for 1, 2 and 3 targets for %s - %s - %s. These will run one after the other and will take several minutes.' % (character, server, region))              
-                        subprocess.Popen('python3 sim.py %s %s %s %s %s 1 no' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
-                    elif(runStandalone):
-                        print('Starting a 1 target standalone')
-                        await client.send_message(message.channel, 'Starting sim. This will take about a minute for %s - %s - %s.' % (character, server, region))
-                        subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
-                    elif(runDPS):
-                        print('Starting DPS only')
-                        await client.send_message(message.channel, 'Starting sim. This will take about a minute for %s - %s - %s.' % (character, server, region))          
-                        subprocess.Popen('python3 dps.py %s %s %s %s %s' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
-                    else:
-                        #Failsafe is single sim
-                        print('I shouldn\'t be here, but gonna run a single target sim')
-                        await client.send_message(message.channel, 'Starting sim. This will take about a minute for %s - %s - %s.' % (character, server, region))
-                        subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, message.channel. id, escapeAuthor, region), shell=True)
+                await client.send_message(message.channel, 'I take about 2 minutes to run a sim (longer if multiple sims are going at the same time). I will ping you when I\'m done')
+                await client.send_message(message.channel, 'Current spec for %s-%s-%s: %s. Armory info last updated %s' % (character, server, region, spec, armory_date))                                      
+                if(run2):
+                    print('Starting a 2 target standalone')
+                    await client.send_message(message.channel, 'Starting 1 sim for 2 targets for %s - %s - %s. This will take about a minute.' % (character, server, region))
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 2 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                elif(run3):
+                    print('Starting a 3 target standalone')
+                    await client.send_message(message.channel, 'Starting 1 sim for 3 targets for %s - %s - %s. This will take about a minute.' % (character, server, region))
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 3 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                elif(runAll3):
+                    print('Starting the 1,2,3 sim run')
+                    await client.send_message(message.channel, 'Starting 3 sims for 1, 2 and 3 targets for %s - %s - %s. These will run one after the other and will take several minutes.' % (character, server, region))              
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 no' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                elif(runStandalone):
+                    print('Starting a 1 target standalone')
+                    await client.send_message(message.channel, 'Starting sim. This will take about a minute for %s - %s - %s.' % (character, server, region))
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
+                elif(runDPS):
+                    print('Starting DPS only')
+                    await client.send_message(message.channel, 'Starting sim. This will take about a minute for %s - %s - %s.' % (character, server, region))          
+                    subprocess.Popen('python3 dps.py %s %s %s %s %s' % (character, server, message.channel.id, escapeAuthor, region), shell=True)
                 else:
-                    await client.send_message(message.channel, '%s: Sorry, I am a mean temple bot. I only have eyes for Shadow Priests.' % author.mention)
+                    #Failsafe is single sim
+                    print('I shouldn\'t be here, but gonna run a single target sim')
+                    await client.send_message(message.channel, 'Starting sim. This will take about a minute for %s - %s - %s.' % (character, server, region))
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, message.channel. id, escapeAuthor, region), shell=True)
             else:
                 if (role == 'TANK'):
                     await client.send_message(message.channel, 'Sims don\'t work well for tanks, therefore tank sims are limited to DPS only')
@@ -271,7 +259,7 @@ async def on_message(message):
                 else:
                     await client.send_message(message.channel, '%s: Error getting info for character %s-%s-%s. Make sure your format is \'!sim charactername-servername-region\'.' % (author.mention, character, server, region))
         else:
-            code = char_exists_code(character, server, region)
+            code = charInfo[1]
             print(code)
             if (code == 404):
                 await client.send_message(message.channel, '%s: Character %s-%s-%s not found. Make sure your format is \'!sim charactername-servername-region\'. Multiple failures here indicate a problem accessing Blizzard\'s API' % (author.mention, character, server, region))
