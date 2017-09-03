@@ -21,7 +21,6 @@ def char_exists(character,server, region):
     try:
         print('https://%s.api.battle.net/wow/character/%s/%s?fields=talents,items,professions&?locale=en_US&apikey=%s' % (region, server, character, api_key))
         r = requests.get('https://%s.api.battle.net/wow/character/%s/%s?fields=talents,items,professions&?locale=en_US&apikey=%s' % (region, server, character, api_key))
-        print("asfsdaa")
         print(r.status_code);
         if(r.status_code == 500):
             print('500 error');
@@ -212,7 +211,6 @@ async def on_message(message):
         elif(message.content.startswith('!dps ')):
             character = charstrip(message.content, '!dps ').strip()
             runDPS = True
-        print("jellp?")
         server = serverstrip(message.content).replace("'", "").strip()
         region = regionfind(message.content).strip()
         escapeAuthor = author.mention.replace(">", "\>").replace("<", "\<")        
