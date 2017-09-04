@@ -217,7 +217,7 @@ async def on_ready():
                                           'using !2sim character-server-region. Rerun a 3 with !3sim character-server-region')
         else:
             await client.send_message(client.get_channel(channel), 'Simulation failed for %s. Please try again.' % (character))
-        #fileCleanup()
+        fileCleanup()
         await client.logout()
 
 client.run(token)
