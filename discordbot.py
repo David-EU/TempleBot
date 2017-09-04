@@ -35,7 +35,7 @@ async def parseOptions(options, channel):
     i = 1
     terminate = False
     while i < len(options):
-        if options[i].startswith('it'):
+        if options[i].lower().startswith('it'):
             tmp = options[i].split()
             try:
                 if int(puncstrip(tmp[1])) < 25001:
@@ -46,7 +46,7 @@ async def parseOptions(options, channel):
             except:
                 terminate = True
                 await client.send_message(channel, 'Iterations option not passed a number')
-        if options[i].startswith('len'):
+        if options[i].lower().startswith('len'):
             tmp = options[i].split()
             try:
                 if int(puncstrip(tmp[1])) < 601:
@@ -57,7 +57,7 @@ async def parseOptions(options, channel):
             except:
                 terminate = True
                 await client.send_message(channel, 'Fight Length option not passed a number')
-        if options[i].startswith('fig'):
+        if options[i].lower().startswith('fig'):
             tmp = options[i].split()
             if tmp[1] in fightstylelist:
                 fs = tmp[1]
@@ -65,7 +65,7 @@ async def parseOptions(options, channel):
                 terminate = True
                 await client.send_message(channel, 'Unknown fight style. Fight styles can be: ' +
                                           ', '.join(fightstylelist) + '. Please match word exactly.')
-        if options[i].startswith('force'):
+        if options[i].lower().startswith('force'):
             forced = True
             await client.send_message(channel, 'Forced acknowledged. Role check will be ignored.')
         i += 1
@@ -226,10 +226,16 @@ async def on_ready():
 @client.event
 async def on_message(message):
     author = message.author
+    if message.content.startswith('!options'):
+        await client.send_message(message.channel, 'Options are:\n--force (ignore roles).\n--iterations NUMBER (set num '
+                                  'of iterations maximum of 25,000.\n--fightstyle type (set fight type: Patchwerk, LightMovement '
+                                  'HeavyMovement, HecticAddCleave or HelterSkelter).\n--lenth NUMBER (fight length, max 600).\n'
+                                  'Example of how to use: !sim Character-Realm-Region --iterations 12500 --fightstyle LightMovement '
+                                  '--length 450\nOptions can be in any order, and not all are necessary')
     if message.content.startswith('!help'):
         await client.send_message(message.channel, 'To simulate: \'!sim charactername-servername-region\'. Only '
                                   'US/EU supported. Sims take a few minutes depending on load. You will get a '
-                                  'message when it is completed.')
+                                  'message when it is completed. For additional options do !options')
         await client.send_message(message.channel, 'Character data is pulled from the Armory, so it may not '
                                   'always be up to date. Please leave in spaces for realm name')
     if message.content.startswith('!nerd') or message.content.startswith('!about'):
