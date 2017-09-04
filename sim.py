@@ -106,28 +106,30 @@ async def run_sim():
     if runScaling: 
         print('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,'
               'haste_rating,mastery_rating,versatility_rating iterations=%s desired_targets=%s html=%s-%s-%s-%s-%s.html '
-              'output=%s-%s-%s-%s.txt max_time=%s fight_style=%s' % (simcraft_path, region, server, character, iterations, numberTargets, character, server, region, 
-              numberTargets, time, character, region, numberTargets, time, runtime, fighttype))
+              'output=%s-%s-%s-%s.txt max_time=%s fight_style=%s' % (simcraft_path, region, server, character, iterations,
+               numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, time, runtime,
+               fighttype))
     else:
         print('%s./simc armory=%s,%s,%s calculate_scale_factors=0 iterations%s desired_targets=%s '
                                'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt fight_style=%s max_time=%s' % (simcraft_path,
-                               region, server, character, iterations, numberTargets, character, server, region, numberTargets, time,
-                               character, region, numberTargets, time, fighttype, runtime))
+                               region, server, character, iterations, numberTargets, character, server, region, numberTargets, 
+                               time, character, region, numberTargets, time, fighttype, runtime))
 #The following code was adapted from: https://github.com/stokbaek/simc-discord
     simout = open(os.path.join(simcraft_path, time+ 'simout'), "w")
     simerr = open(os.path.join(simcraft_path, time+'simerr'), "w")
     if runScaling:
         sim = subprocess.Popen('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,'
                                'crit_rating,haste_rating,mastery_rating,versatility_rating iterations=%s desired_targets=%s '
-                               'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt max_time=%s fight_style=%s' % (simcraft_path, region, server, character, 
-                               iterations, numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, 
-                               time, runtime, fighttype), cwd=simcraft_path, universal_newlines=True, shell=True, stdout=simout, stderr=simerr)
+                               'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt max_time=%s fight_style=%s' % (simcraft_path, 
+                               region, server, character, iterations, numberTargets, character, server, region, numberTargets, 
+                               time, character, region, numberTargets, time, runtime, fighttype), cwd=simcraft_path, 
+                               universal_newlines=True, shell=True, stdout=simout, stderr=simerr)
     else:
         sim = subprocess.Popen('%s./simc armory=%s,%s,%s calculate_scale_factors=0 iterations=%s desired_targets=%s '
                                'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt fight_style=%s max_time=%s' % (simcraft_path,
-                               region, server, character, iterations, numberTargets, character, server, region, numberTargets, time, 
-                               character, region, numberTargets, time, fighttype, runtime), cwd=simcraft_path, universal_newlines=True, shell=True, 
-                               stdout=simout, stderr=simerr)        
+                               region, server, character, iterations, numberTargets, character, server, region, numberTargets, 
+                               time, character, region, numberTargets, time, fighttype, runtime), cwd=simcraft_path, 
+                               universal_newlines=True, shell=True, stdout=simout, stderr=simerr)        
 
     progress_message = await client.send_message(client.get_channel(channel), 'Sim Starting')
     await asyncio.sleep(1)
