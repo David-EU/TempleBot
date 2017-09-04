@@ -76,6 +76,7 @@ def get_char_info(character, server, region):
             update_time = armory_date(r.json())
             isDPS = is_dps(r.json())
             role = get_role(r.json())
+            print(role)
             spec = get_spec(r.json())
             return [charExists, statusCode, isDPS, spec, role, update_time]
     except:
@@ -164,8 +165,6 @@ def get_spec(armory_json):
         except:
             print('No spec3 identifier in tier %s.' % i)
 
-
-@client.event
 async def on_ready():
 #On ready, joins all servers in JSON
     for x in config_json['servers']:
@@ -283,8 +282,7 @@ async def on_message(message):
                                                   'This is a limitation of SimulationCraft.' % author.mention)
                 else:
                     await client.send_message(message.channel, '%s: Error getting info for character %s-%s-%s. '
-                                              'Make sure your format is \'!sim charactername-servername-region\'.' 
-                                             % (author.mention, character, server, region))
+                                              'Make sure your format is \'!sim charactername-servername-region\'.'                                              % (author.mention, character, server, region))
         else:
             code = charInfo[1]
             print(code)

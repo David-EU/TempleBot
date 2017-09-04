@@ -23,8 +23,11 @@ region = str(sys.argv[5])
 numberTargets = str(sys.argv[6])
 escapeAuthor = str(sys.argv[4]).replace(">", "\>").replace("<", "\<")
 standAlone = str(sys.argv[7])
+#runSim = str(sys.argv[8])
+#iterations = str(sys.argv[9])
+#fightType = str(sys.argv[10])
 time = str(int(time.time()))
-pawn = ""
+pawn = "Pawn strips are not generated in DPS only sims"
 dps = ""
 
 def pawnstrip(character, server, region, numberTargets, standAlone):
@@ -58,7 +61,7 @@ def damagestrip(character, server, region, numberTargets):
         with open('%s%s-%s-%s-%s-%s.html' % (simcraft_path, character, server, region, numberTargets, time), 
                   encoding='utf8') as infile:
             soup = BeautifulSoup(infile, "html.parser")
-            dps = soup.find(text=re.compile(' dps'))
+            dps = soup.find(text=re.compile(' dps')).strip()
             return soup.find(text=re.compile(' dps'))
     except:
         print('Bad sim, no DPS')
@@ -70,7 +73,7 @@ def generateurl():
         print("%smakesimcsummary.sh %s %s %s '%s' '%s' %s%s-%s-%s-%s-%s.html %s" % (simcraft_path, character, server, 
               region, dps, pawn,  simcraft_path, character, server, region, numberTargets, time, simcraft_path))
         filename = subprocess.run("%smakesimcsummary.sh %s %s %s '%s' '%s' %s%s-%s-%s-%s-%s.html %s" % (simcraft_path, 
-                                  character, server,  region, dps, pawn, simcraft_path, character, server, region, 
+                                  character, server,  region, dps.strip(), pawn.strip(), simcraft_path, character, server, region, 
                                   numberTargets, time, simcraft_path), shell=True, stdout=subprocess.PIPE)
         return ('http://www.ketbots.com/sims/%s' % filename.stdout.decode('utf-8').strip())
     except:
@@ -120,7 +123,6 @@ async def run_sim():
         if runTime > 6 *60:
             await client.edit_message(progress_message, 'Simulation timed out (6 min) :(')
             sim.terminate()
-            
         await asyncio.sleep(1)
         with open(os.path.join(simcraft_path, time+ 'simout'), errors='replace') as s:
             progressCheck = s.readlines()
@@ -140,7 +142,7 @@ async def run_sim():
                     successfulSim = True
                 else:
                     if 'Generating' in progressCheck[-1]:
-                        done ='█' * (20 - progressCheck[-1].count('.'))
+                        done = '█' * (20 - progressCheck[-1].count('.'))
                         todo = '░' * (progressCheck[-1].count('.'))
                         progressBar = done + todo
                         percentage = 100 - progressCheck[-1].count('.') * 5 
@@ -172,9 +174,15 @@ async def on_ready():
                                       'target fight' % (character, numberTargets))
             await client.send_message(client.get_channel(channel), 'Remember, this is for %s\'s current talents! Other talent '
                                       'combos will likely be a different pawn string.' % (character))
-            await client.send_message(client.get_channel(channel), '%s: %s' % (author, pawnstrip(character, server, region, 
-                                      numberTargets, standAlone)))
-            await client.send_message(client.get_channel(channel), '%s' % (damagestrip(character, server, region, numberTargets)))
+            damageStrip = damagestrip(character, server, region, numberTargets)
+            if 'TMI' not in damageStrip:
+                await client.send_message(client.get_channel(channel), '%s: %s' % (author, pawnstrip(character, server, region, 
+                                          numberTargets, standAlone)))
+                await client.send_message(client.get_channel(channel), '%s' % damageStrip)
+            else:
+                global pawn
+                pawn = 'Pawn Strips are unreliable for tanks and are not supplied'
+                await client.send_message(client.get_channel(channel), '%s %s' % (author, damageStrip))
             await client.send_message(client.get_channel(channel), 'View detailed results for %s here: %s' % (character, 
                                       generateurl()))
             if(numberTargets == '1' and standAlone == "no"):
