@@ -165,6 +165,89 @@ def get_spec(armory_json):
         except:
             print('No spec3 identifier in tier %s.' % i)
 
+#The following three methods are from: https://github.com/lgkern/PriestPy/blob/master/src/dict.py
+def getcharstats(name,realm,zone):
+    zone = zone.lower()
+    locales = {"us":"en_US","eu":"en_GB","kr":"ko_KR","tw":"zh_TW"}
+    locale = locales[zone]
+    url = "https://"+zone+".api.battle.net/wow/character/"+realm+"/"+name+"?fields=stats&locale="+locale+"&apikey="+api_key
+    print(url)
+    r = requests.get(url)
+    response = r.json()
+    print(response)
+    blelfworg = (0,1)[response["race"] == 10 or response["race"] == 22]
+    taurdwarf = (0,1)[response["race"] == 6 or response["race"] == 3]
+    charint = response["stats"]["int"]
+    charcrit = response["stats"]["critRating"]
+    charhaste = response["stats"]["hasteRating"]
+    charmastery = response["stats"]["masteryRating"]
+    charvers = response["stats"]["versatility"]
+    url = "https://"+zone+".api.battle.net/wow/character/"+realm+"/"+name+"?fields=items&locale="+locale+"&apikey="+api_key
+    r = requests.get(url)
+    response = r.json()
+        
+    drape = (0,1)[response["items"]["back"]["name"] == "Drape of Shame"]
+       
+    return [charint,charcrit,charhaste,charmastery,charvers,blelfworg,taurdwarf,drape]
+
+def getdiscstats1(character,intellect,crit,haste,mastery,vers,blef=0,tauren=0,drape=0):
+    hasterating = 375
+    critrating = 400   
+    masteryrating = 266.66666
+    versrating = 475
+    critpun = 1+(0,0.1)[drape]+(0,0.02)[tauren]
+    raidatone = 0.75
+    dungeonatone = 0.45
+    intellect = intellect + 1706
+    intweight = 1000/((intellect/100)/1.05)
+    basecrit = 0.05+(0,0.01)[blef]
+    critweight = 1000*((critpun)/critrating/(((((crit/critrating)/100+basecrit)*(critpun))+1)))
+    raidmasteryweight = 1000*(1/masteryrating/((1+(mastery/masteryrating)/100)+0.12)*raidatone)
+    dungeonmasteryweight = 1000*(1/masteryrating/((1+(mastery/masteryrating)/100)+0.12)*dungeonatone)
+    versweight = 1000*(1/versrating/(  1+(vers/versrating)/100))
+    hasteweight = max(critweight,raidmasteryweight,versweight)  * 1.1
+    leechweight = 1000/300*0.75
+    dungleech = 1000/300*0.75/2
+    normint = str(round(intweight/intweight,2))
+    normhaste = str(round(hasteweight/intweight,2))
+    normcrit = str(round(critweight/intweight,2))
+    raidnormmastery = str(round(raidmasteryweight/intweight,2))
+    dungeonnormmastery = str(round(dungeonmasteryweight/intweight,2))
+    normvers = str(round(versweight/intweight,2))
+    normleech = str(round(leechweight/intweight,2))
+    normdungleech = str(round(dungleech/intweight,2))
+    return '( Pawn: v1: \"'+character+' Disc Raid\": Intellect=' + normint+', Versatility='+normvers+', HasteRating='+normhaste+', MasteryRating='+raidnormmastery+', CritRating='+normcrit+', Leech='+normleech+')'
+
+def getdiscstats2(character,intellect,crit,haste,mastery,vers,blef=0,tauren=0,drape=0):
+    hasterating = 375
+    critrating = 400
+    masteryrating = 266.66666
+    versrating = 475
+    critpun = 1+(0,0.1)[drape]+(0,0.02)[tauren]
+    raidatone = 0.75
+    dungeonatone = 0.45
+    intellect = intellect + 1706
+    intweight = 1000/((intellect/100)/1.05)
+    basecrit = 0.05+(0,0.01)[blef]
+    critweight = 1000*((critpun)/critrating/(((((crit/critrating)/100+basecrit)*(critpun))+1)))
+    raidmasteryweight = 1000*(1/masteryrating/((1+(mastery/masteryrating)/100)+0.12)*raidatone)
+    dungeonmasteryweight = 1000*(1/masteryrating/((1+(mastery/masteryrating)/100)+0.12)*dungeonatone)
+    versweight = 1000*(1/versrating/(  1+(vers/versrating)/100))
+    hasteweight = max(critweight,raidmasteryweight,versweight)  * 1.1
+    leechweight = 1000/300*0.75
+    dungleech = 1000/300*0.75/2
+    normint = str(round(intweight/intweight,2))
+    normhaste = str(round(hasteweight/intweight,2))
+    normcrit = str(round(critweight/intweight,2))
+    raidnormmastery = str(round(raidmasteryweight/intweight,2))
+    dungeonnormmastery = str(round(dungeonmasteryweight/intweight,2))
+    normvers = str(round(versweight/intweight,2))
+    normleech = str(round(leechweight/intweight,2))
+    normdungleech = str(round(dungleech/intweight,2))
+    return '( Pawn: v1: \"'+character+' Disc Dungeon\": Intellect=' + normint+', Versatility='+normvers+', HasteRating='+normhaste+', MasteryRating='+dungeonnormmastery+', CritRating='+normcrit+', Leech='+normdungleech+')'
+
+
+@client.event
 async def on_ready():
 #On ready, joins all servers in JSON
     for x in config_json['servers']:
@@ -240,31 +323,31 @@ async def on_message(message):
                                           'updated %s' % (character, server, region, spec, armory_date))
                 if(run2):
                     print('Starting a 2 target standalone')
-                    subprocess.Popen('python3 sim.py %s %s %s %s %s 2 yes' % (character, server, 
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 2 yes True' % (character, server, 
                                      message.channel.id, escapeAuthor, region), shell=True)
                 elif(run3):
                     print('Starting a 3 target standalone')
-                    subprocess.Popen('python3 sim.py %s %s %s %s %s 3 yes' % (character, server, 
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 3 yes True' % (character, server, 
                                       message.channel.id, escapeAuthor, region), shell=True)
                 elif(runAll3):
                     print('Starting the 1,2,3 sim run')
                     await client.send_message(message.channel, 'Starting 3 sims for 1, 2 and 3 targets for '
                                               '%s - %s - %s. These will run one after the other and will '
                                               'take several minutes.' % (character, server, region))
-                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 no' % (character, server, 
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 no True' % (character, server, 
                                      message.channel.id, escapeAuthor, region), shell=True)
                 elif(runStandalone):
                     print('Starting a 1 target standalone')
-                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, 
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes True' % (character, server, 
                                       message.channel.id, escapeAuthor, region), shell=True)
                 elif(runDPS):
                     print('Starting DPS only')
-                    subprocess.Popen('python3 dps.py %s %s %s %s %s' % (character, server, 
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes False' % (character, server, 
                                      message.channel.id, escapeAuthor, region), shell=True)
                 else:
                     #Failsafe is single sim
                     print('I shouldn\'t be here, but gonna run a single target sim')
-                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes' % (character, server, 
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes True' % (character, server, 
                                      message.channel. id, escapeAuthor, region), shell=True)
             else:
                 if (role == 'TANK'):
@@ -275,10 +358,22 @@ async def on_message(message):
                                               armory_date(character, server, region)))
                     await client.send_message(message.channel, 'Starting DPS only sim, I will ping you when '
                                               'I\'m done')
-                    subprocess.Popen('python3 dps.py %s %s %s %s %s' % (character, server, message.channel.id, 
+                    subprocess.Popen('python3 sim.py %s %s %s %s %s 1 yes False' % (character, server, message.channel.id, 
                                      escapeAuthor, region), shell=True)
                 elif (role == 'HEALING'):
-                    await client.send_message(message.channel, '%s: Sorry, sims do not work for healers. '
+                    if(spec == 'Discipline'):
+                         #await client.send_message(message.channel, 'Oh look! A disc priest, I can actually figure this for you (sorry other healers!). Using Josh\'s Excel Spreadsheet to calculate pawn values')
+                         #await client.send_message(message.channel, 'Current spec for %s-%s-%s: %s. Armory info last updated %s' % (character, server, region, spec, armory_date(character, server, region)))
+                         #fixed = getcharstats(character,server,region)
+                         #discpawn1 = getdiscstats1(character, *fixed)
+                         #discpawn2 = getdiscstats2(character, *fixed)
+                         #await client.send_message(message.channel, '%s' % discpawn1)
+                         #await client.send_message(message.channel, '%s' % discpawn2)
+                        await client.send_message(message.channel, '%s: Sorry, the disc simulator is currently '
+                                                  'offline. Simulation Craft does not work for healers.' % 
+                                                  author.mention)
+                    else:
+                        await client.send_message(message.channel, '%s: Sorry, sims do not work for healers. '
                                                   'This is a limitation of SimulationCraft.' % author.mention)
                 else:
                     await client.send_message(message.channel, '%s: Error getting info for character %s-%s-%s. '

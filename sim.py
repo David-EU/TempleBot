@@ -23,7 +23,11 @@ region = str(sys.argv[5])
 numberTargets = str(sys.argv[6])
 escapeAuthor = str(sys.argv[4]).replace(">", "\>").replace("<", "\<")
 standAlone = str(sys.argv[7])
-#runSim = str(sys.argv[8])
+scaling = str(sys.argv[8])
+runScaling = True
+if scaling == 'False':
+    runScaling = False
+print(runScaling)
 #iterations = str(sys.argv[9])
 #fightType = str(sys.argv[10])
 time = str(int(time.time()))
@@ -101,18 +105,32 @@ def fileCleanup():
 
 async def run_sim():
     print('Starting sim:')
-    print('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,'
-          'haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s html=%s-%s-%s-%s-%s.html '
-          'output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, numberTargets, character, server, region, 
-          numberTargets, time, character, region, numberTargets, time))
+    if runScaling: 
+        print('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,crit_rating,'
+              'haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s html=%s-%s-%s-%s-%s.html '
+              'output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, numberTargets, character, server, region, 
+              numberTargets, time, character, region, numberTargets, time))
+    else:
+        print('%s./simc armory=%s,%s,%s calculate_scale_factors=0 iterations=10000 desired_targets=%s '
+                               'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt fight_style=LightMovement' % (simcraft_path,
+                               region, server, character, numberTargets, character, server, region, numberTargets, time,
+                               character, region, numberTargets, time))
 #The following code was adapted from: https://github.com/stokbaek/simc-discord
     simout = open(os.path.join(simcraft_path, time+ 'simout'), "w")
     simerr = open(os.path.join(simcraft_path, time+'simerr'), "w")
-    sim = subprocess.Popen('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,'
-                           'crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s '
-                           'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, 
-                           numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, 
-                           time), cwd=simcraft_path, universal_newlines=True, shell=True, stdout=simout, stderr=simerr)
+    if runScaling:
+        sim = subprocess.Popen('%s./simc armory=%s,%s,%s calculate_scale_factors=1 scale_only=strength,agility,intellect,'
+                               'crit_rating,haste_rating,mastery_rating,versatility_rating iterations=10000 desired_targets=%s '
+                               'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt' % (simcraft_path, region, server, character, 
+                               numberTargets, character, server, region, numberTargets, time, character, region, numberTargets, 
+                               time), cwd=simcraft_path, universal_newlines=True, shell=True, stdout=simout, stderr=simerr)
+    else:
+        sim = subprocess.Popen('%s./simc armory=%s,%s,%s calculate_scale_factors=0 iterations=10000 desired_targets=%s '
+                               'html=%s-%s-%s-%s-%s.html output=%s-%s-%s-%s.txt fight_style=LightMovement' % (simcraft_path,
+                               region, server, character, numberTargets, character, server, region, numberTargets, time, 
+                               character, region, numberTargets, time), cwd=simcraft_path, universal_newlines=True, shell=True, 
+                               stdout=simout, stderr=simerr)        
+
     progress_message = await client.send_message(client.get_channel(channel), 'Sim Starting')
     await asyncio.sleep(1)
     loop = True
@@ -166,7 +184,7 @@ async def run_sim():
 @client.event
 async def on_ready():
         success = await run_sim()
-        print(success)
+        print(runScaling)
         for x in config_json['servers']:
             client.accept_invite(x)
         if success:
@@ -175,13 +193,14 @@ async def on_ready():
             await client.send_message(client.get_channel(channel), 'Remember, this is for %s\'s current talents! Other talent '
                                       'combos will likely be a different pawn string.' % (character))
             damageStrip = damagestrip(character, server, region, numberTargets)
-            if 'TMI' not in damageStrip:
+            if 'TMI' not in damageStrip and runScaling:
                 await client.send_message(client.get_channel(channel), '%s: %s' % (author, pawnstrip(character, server, region, 
                                           numberTargets, standAlone)))
                 await client.send_message(client.get_channel(channel), '%s' % damageStrip)
             else:
-                global pawn
-                pawn = 'Pawn Strips are unreliable for tanks and are not supplied'
+                if 'TMI' in damageStrip:
+                    global pawn
+                    pawn = 'Pawn Strips are unreliable for tanks and are not supplied'
                 await client.send_message(client.get_channel(channel), '%s %s' % (author, damageStrip))
             await client.send_message(client.get_channel(channel), 'View detailed results for %s here: %s' % (character, 
                                       generateurl()))
@@ -198,7 +217,7 @@ async def on_ready():
                                           'using !2sim character-server-region. Rerun a 3 with !3sim character-server-region')
         else:
             await client.send_message(client.get_channel(channel), 'Simulation failed for %s. Please try again.' % (character))
-        fileCleanup()
+        #fileCleanup()
         await client.logout()
 
 client.run(token)
